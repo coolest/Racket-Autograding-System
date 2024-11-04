@@ -18,10 +18,17 @@
         [(submission-metadata (read-json (open-input-file "../submission_metadata.json" #:mode 'text)))]
     (hash-ref submission-metadata 'previous_submissions null)))
     
+(define (score->number s)
+    (cond
+        [(number? s) s]
+        [(string? s) (let ([n (string->number s)])
+                        (if n n 0))]
+        [#t 0]))
+
 (define previous-submission-count
     (length 
         (filter (lambda (sub)
-            (> (hash-ref sub 'score 0) 0)) previous-submissions)))
+            (> (score->number (hash-ref sub 'score "0.0")) 0)) previous-submissions)))
 
 
 ; json data for the results-file
