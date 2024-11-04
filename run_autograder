@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Autograder script for grading Racket assignments
+homework_file="homework3.rkt"
+
+# Copy the submission into the working directory
+cp /autograder/submission/$homework_file /autograder/source/$homework_file
+
+# Make sure they have the right name for homework file
+if [ ! $? -eq 0 ]; then
+    echo "{ \"score\": 0,
+            \"output\": \"Please make sure your submission is named $homework_file\"
+        }" > /autograder/results/results.json
+
+    exit
+fi
+
+# Change the directory to where we want to work
+cd /autograder/source
+
+# Run the autograder
+~/racket/bin/raco exe autograder.rkt 2>compile_error.txt
+if [ ! $? -eq 0 ]; then
+    compile_error=$(cat compile_error.txt | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+
+    echo "{ \"score\": 0,
+            \"output\": \"Compile error:\n\n $compile_error\"
+        }" > /autograder/results/results.json
+
+    exit
+fi
+
+./autograder 2>compile_error.txt
+if [ ! $? -eq 0 ]; then
+    runtime_error=$(cat compile_error.txt | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read())[1:-1])')
+
+    echo "{ \"score\": 0,
+            \"output\": \"Runtime error:\n\n $runtime_error\"
+        }" > /autograder/results/results.json
+
+    exit
+fi
